@@ -3,48 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 智能点词阅读器 - Gemma 4 增强版</title>
+    <title>AI 智能点词阅读器 - 极速进化版</title>
     <style>
-        :root { --primary: #2ecc71; --bg: #f8f9fa; --card: #ffffff; --text: #2c3e50; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
-        .container { max-width: 650px; width: 100%; background: var(--card); min-height: 100vh; padding: 25px; box-sizing: border-box; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
-        .view { display: none; flex-direction: column; }
+        :root {
+            --primary: #2ecc71;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #2c3e50;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 650px;
+            width: 100%;
+            background: var(--card);
+            min-height: 100vh;
+            padding: 25px;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+        }
+        .view { display: none; flex-direction: column; height: 100%; }
         .view.active { display: flex; }
-        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
-        label { font-weight: bold; font-size: 14px; color: #7f8c8d; }
-        input, select, textarea { padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-        textarea { height: 200px; line-height: 1.6; }
-        .btn { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .reader-area { line-height: 1.9; font-size: 20px; white-space: pre-wrap; color: #1a1a1a; }
-        .word { cursor: pointer; border-radius: 4px; padding: 0 2px; display: inline-block; transition: 0.2s; }
-        .word:hover { background: rgba(46, 204, 113, 0.2); color: var(--primary); }
-        .word.active { background: var(--primary); color: white; }
-        .dict-popup { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 650px; background: white; box-shadow: 0 -5px 30px rgba(0,0,0,0.15); border-radius: 20px 20px 0 0; transition: 0.4s cubic-bezier(0.1, 0.8, 0.2, 1); padding: 25px; z-index: 1000; box-sizing: border-box; }
+        
+        h2 { text-align: center; color: #2d3748; margin-top: 5px; font-size: 22px; }
+        .form-group { margin-bottom: 18px; display: flex; flex-direction: column; gap: 6px; }
+        label { font-weight: 600; font-size: 13px; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        input, select, textarea {
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            background: #fff;
+            color: var(--text);
+            transition: all 0.2s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.15);
+        }
+        textarea { height: 220px; line-height: 1.6; resize: vertical; }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+            transition: all 0.2s;
+        }
+        .btn:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn:active { transform: translateY(1px); }
+        
+        .back-nav {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            color: #718096;
+            cursor: pointer;
+            padding: 0;
+            font-size: 15px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            align-self: flex-start;
+        }
+        .back-nav:hover { color: var(--text); }
+
+        /* 阅读核心区 */
+        .reader-area { line-height: 1.9; font-size: 19px; white-space: pre-wrap; color: #1a202c; letter-spacing: 0.3px; }
+        .word { cursor: pointer; border-radius: 4px; padding: 0 2px; display: inline-block; transition: all 0.15s; }
+        .word:hover { background: rgba(46, 204, 113, 0.15); color: #27ae60; }
+        .word.active { background: var(--primary); color: white; box-shadow: 0 2px 6px rgba(46, 204, 113, 0.3); }
+
+        /* 词典弹窗 */
+        .dict-popup {
+            position: fixed;
+            bottom: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 650px;
+            background: white;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.08);
+            border-radius: 20px 20px 0 0;
+            transition: bottom 0.35s cubic-bezier(0.1, 0.8, 0.2, 1);
+            padding: 22px 24px;
+            z-index: 1000;
+            box-sizing: border-box;
+            border-top: 1px solid var(--border);
+        }
         .dict-popup.show { bottom: 0; }
-        .popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .popup-word { font-size: 24px; font-weight: bold; color: var(--primary); }
-        .popup-body { font-size: 17px; line-height: 1.6; color: #34495e; }
-        .loading { font-style: italic; color: #95a5a6; }
+        .popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #edf2f7; }
+        .popup-word { font-size: 22px; font-weight: 700; color: #2d3748; }
+        .popup-body { font-size: 16px; line-height: 1.6; color: #4a5568; min-height: 45px; }
+        
+        /* 骨架屏动画效果 */
+        .skeleton { display: inline-block; height: 16px; background: #e2e8f0; border-radius: 4px; animation: pulse 1.5s infinite ease-in-out; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
     </style>
 </head>
 <body>
 <div class="container">
     <div id="setupView" class="view active">
-        <h2 style="text-align:center;">AI 智能查词阅读器</h2>
+        <h2>AI 点词智能阅读器</h2>
         <div class="form-group">
-            <label>1. API Key (Gemini/Gemma 通用)</label>
-            <input type="password" id="apiKey" placeholder="输入您的密钥...">
+            <label>1. Google AI API Key</label>
+            <input type="password" id="apiKey" placeholder="在此处粘贴您的 Gemini/Gemma 通用密钥">
         </div>
         <div class="form-group">
-            <label>2. 核心 AI 模型 (重点选择)</label>
+            <label>2. 核心大语言模型</label>
             <select id="aiModel">
-                <option value="gemma-4-31b-it">Gemma 4 (31B 旗舰开源模型 - 推荐)</option>
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (极速翻译)</option>
-                <option value="gemma-4-26b-a4b-it">Gemma 4 (26B MoE 专家模型)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (毫秒级极速响应 - 强烈推荐)</option>
+                <option value="gemma-4-31b-it">Gemma 4 (31B 开源旗舰模型 - 深度语义)</option>
+                <option value="gemma-4-26b-a4b-it">Gemma 4 (26B MoE 架构专家模型)</option>
             </select>
         </div>
         <div class="form-group">
-            <label>3. 目标语言</label>
+            <label>3. 目标释义语言</label>
             <select id="targetLang">
                 <option value="中文">中文 (Chinese)</option>
                 <option value="葡萄牙语">Português (葡萄牙语)</option>
@@ -52,77 +143,151 @@
             </select>
         </div>
         <div class="form-group">
-            <label>4. 导入内容</label>
-            <input type="file" id="fileInput" accept=".txt">
-            <textarea id="textInput" placeholder="在此粘贴您的文章..."></textarea>
+            <label>4. 导入阅读文本</label>
+            <input type="file" id="fileInput" accept=".txt" style="margin-bottom: 8px; font-size: 13px;">
+            <textarea id="textInput" placeholder="在此粘贴英语/葡语文章、小说章节或歌词段落..."></textarea>
         </div>
-        <button class="btn" onclick="startReading()">进入沉浸模式</button>
+        <button class="btn" onclick="startReading()">开启沉浸阅读模式</button>
     </div>
+
     <div id="readerView" class="view">
-        <button onclick="location.reload()" style="background:none; border:none; color:#7f8c8d; cursor:pointer; margin-bottom:15px;">← 返回修改</button>
+        <button class="back-nav" onclick="backToSetup()">⚙️ 返回配置面板</button>
         <div id="readerArea" class="reader-area"></div>
     </div>
 </div>
 
 <div id="dictPopup" class="dict-popup">
     <div class="popup-header">
-        <span id="popupWord" class="popup-word"></span>
-        <button onclick="closePopup()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#ccc;">×</button>
+        <span id="popupWord" class="popup-word">Word</span>
+        <button onclick="closePopup()" style="background:none; border:none; font-size:26px; cursor:pointer; color:#a0aec0; padding:0 5px;">×</button>
     </div>
     <div id="popupBody" class="popup-body"></div>
 </div>
 
 <script>
-    // 文件导入
-    document.getElementById('fileInput').addEventListener('change', e => {
-        const reader = new FileReader();
-        reader.onload = ev => document.getElementById('textInput').value = ev.target.result;
-        reader.readAsText(e.target.files[0]);
+    // 页面加载时：自动读取本地记忆的 Key、模型和语言设置
+    window.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('reader_apiKey')) document.getElementById('apiKey').value = localStorage.getItem('reader_apiKey');
+        if (localStorage.getItem('reader_model')) document.getElementById('aiModel').value = localStorage.getItem('reader_model');
+        if (localStorage.getItem('reader_lang')) document.getElementById('targetLang').value = localStorage.getItem('reader_lang');
     });
 
+    // 处理外部文件导入
+    document.getElementById('fileInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => document.getElementById('textInput').value = ev.target.result;
+        reader.readAsText(file);
+    });
+
+    // 进入阅读模式
     function startReading() {
         const text = document.getElementById('textInput').value;
-        if(!text.trim()) return alert("请先输入内容！");
+        if (!text.trim()) return alert("请先贴入一些文章内容！");
+
+        // 保存配置到本地，下次打开免重复输入
+        localStorage.setItem('reader_apiKey', document.getElementById('apiKey').value);
+        localStorage.setItem('reader_model', document.getElementById('aiModel').value);
+        localStorage.setItem('reader_lang', document.getElementById('targetLang').value);
+
         const area = document.getElementById('readerArea');
         area.innerHTML = '';
-        // 渲染单词
-        text.split(/(\b[a-zA-Z0-9'-]+\b)/g).forEach(t => {
-            if(/\b[a-zA-Z0-9'-]+\b/.test(t)) {
-                const s = document.createElement('span');
-                s.className = 'word'; s.textContent = t;
-                s.onclick = (e) => handleWord(e, t);
-                area.appendChild(s);
-            } else area.appendChild(document.createTextNode(t));
+        
+        // 分词渲染逻辑 (精确保留换行和空格)
+        text.split(/(\b[a-zA-Z0-9'-]+\b)/g).forEach(token => {
+            if (/\b[a-zA-Z0-9'-]+\b/.test(token)) {
+                const span = document.createElement('span');
+                span.className = 'word';
+                span.textContent = token;
+                span.onclick = (e) => handleWordClick(e, token);
+                area.appendChild(span);
+            } else {
+                area.appendChild(document.createTextNode(token));
+            }
         });
+
+        // 视图平滑隐藏切换（不再刷新页面）
         document.getElementById('setupView').classList.remove('active');
-        document.getElementById('readerView').classList.add('active');
+        document.getElementById('readerView').classList.add('add', 'active');
+        window.scrollTo(0, 0);
     }
 
-    async function handleWord(e, word) {
+    // 优雅返回：不执行刷新，状态完美留存
+    function backToSetup() {
+        closePopup();
+        document.getElementById('readerView').classList.remove('active');
+        document.getElementById('setupView').classList.add('active');
+    }
+
+    // 核心点击查词：升级流式原理解析
+    async function handleWordClick(e, word) {
         document.querySelectorAll('.word').forEach(w => w.classList.remove('active'));
         e.target.classList.add('active');
-        const context = e.target.parentNode.textContent;
-        const popup = document.getElementById('dictPopup');
-        document.getElementById('popupWord').textContent = word;
-        document.getElementById('popupBody').innerHTML = '<span class="loading">正在调用 AI 分析语境...</span>';
-        popup.classList.add('show');
 
-        const key = document.getElementById('apiKey').value;
+        const context = e.target.parentNode.textContent;
+        const popupBody = document.getElementById('popupBody');
+        
+        document.getElementById('popupWord').textContent = word;
+        // 瞬间渲染高级骨架屏动画，打破等待死板感
+        popupBody.innerHTML = '<div class="skeleton" style="width:40%"></div><br><div class="skeleton" style="width:80%"></div>';
+        document.getElementById('dictPopup').classList.add('show');
+
+        const apiKey = document.getElementById('apiKey').value;
         const model = document.getElementById('aiModel').value;
         const lang = document.getElementById('targetLang').value;
 
+        if (!apiKey) {
+            popupBody.innerHTML = '<span style="color:#e53e3e; font-weight:bold;">未检测到 API Key，请返回输入！</span>';
+            return;
+        }
+
+        // 极致性能压缩的系统提示词，大幅压低模型处理时间
+        const prompt = `Analyze "${word}" in context. Context: "${context}". Target lang: ${lang}. Output format strictly: [IPA] | POS & Meaning in this context | Short grammar/collocation note if any. No markdown, no pleasantries, ultra-short.`;
+
+        // 升级关键点：使用 streamGenerateContent 终结整块等待
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`;
+
         try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: `作为查词助手，翻译单词"${word}"。上下文:"${context}"。目标语言:${lang}。格式:[音标] 意思 (提示)` }] }] })
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
-            const data = await res.json();
-            document.getElementById('popupBody').innerHTML = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
-        } catch (err) { document.getElementById('popupBody').textContent = "请求错误，请检查 Key 或模型权限。"; }
+
+            if (!response.ok) throw new Error("API状态异常");
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let buffer = "";
+            let hasContent = false;
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                
+                // 核心流式算法：实时用全局正则从正在生成的混沌JSON流里剥离文本碎片
+                const matches = [...buffer.matchAll(/"text"\s*:\s*"((?:[^"\\]|\\.)*)"/g)];
+                let streamedText = matches.map(m => {
+                    try { return JSON.parse(`"${m[1]}"`); } catch { return ""; }
+                }).join("");
+
+                if (streamedText.trim()) {
+                    if (!hasContent) { popupBody.innerHTML = ""; hasContent = true; } // 冲掉骨架屏
+                    popupBody.innerHTML = streamedText.replace(/\n/g, '<br>');
+                }
+            }
+        } catch (err) {
+            popupBody.innerHTML = `<span style="color:#e53e3e;">连接AI失败。提示：请检查密钥有效性或网络代理。</span>`;
+        }
     }
 
-    function closePopup() { document.getElementById('dictPopup').classList.remove('show'); }
+    function closePopup() {
+        document.getElementById('dictPopup').classList.remove('show');
+        document.querySelectorAll('.word').forEach(w => w.classList.remove('active'));
+    }
 </script>
 </body>
 </html>
