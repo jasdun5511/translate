@@ -50,7 +50,7 @@
             text-align: center;
         }
 
-        /* 1. 配置/输入界面样式 */
+        /* 配置/输入界面样式 */
         .form-group {
             margin-bottom: 16px;
             display: flex;
@@ -79,14 +79,9 @@
         }
 
         textarea {
-            height: 250px;
+            height: 220px;
             resize: vertical;
             line-height: 1.5;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            margin-bottom: 15px;
         }
 
         .btn {
@@ -111,7 +106,7 @@
             margin-bottom: 15px;
         }
 
-        /* 2. 阅读界面样式（还原图片感觉） */
+        /* 阅读界面样式 */
         .reader-area {
             line-height: 1.8;
             font-size: 19px;
@@ -139,7 +134,7 @@
             color: white;
         }
 
-        /* 3. 底部浮动词典弹窗 */
+        /* 底部浮动词典弹窗 */
         .dict-popup {
             position: fixed;
             bottom: -100%;
@@ -202,12 +197,20 @@
         <h2>AI 智能查词阅读器</h2>
         
         <div class="form-group">
-            <label for="apiKey">1. Gemini API Key</label>
-            <input type="password" id="apiKey" placeholder="在此粘入你的 Gemini 密钥">
+            <label for="apiKey">1. Gemini / Gemma API Key</label>
+            <input type="password" id="apiKey" placeholder="在此粘入你的 Google AI 密钥">
         </div>
 
         <div class="form-group">
-            <label for="targetLang">2. 目标翻译语言</label>
+            <label for="aiModel">2. 选择 AI 模型类型</label>
+            <select id="aiModel">
+                <option value="gemma-4-31b-it">Gemma 4 (31B-IT 开源旗舰模型)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (极速推荐)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="targetLang">3. 目标翻译语言</label>
             <select id="targetLang">
                 <option value="中文 (Chinese)">中文 (Chinese)</option>
                 <option value="葡萄牙语 (Portuguese)">Português (葡萄牙语)</option>
@@ -216,16 +219,16 @@
         </div>
 
         <div class="form-group">
-            <label>3. 导入文章（二选一）</label>
+            <label>4. 导入文章（选择文件或直接粘贴）</label>
             <input type="file" id="fileInput" accept=".txt" style="margin-bottom: 8px;">
-            <textarea id="textInput" placeholder="或者直接在这里粘贴文章/歌词/小说段落..."></textarea>
+            <textarea id="textInput" placeholder="在此粘贴你想阅读的文章、歌词或剧本段落..."></textarea>
         </div>
 
         <button class="btn" onclick="startReading()">开始沉浸阅读</button>
     </div>
 
     <div id="readerView" class="view">
-        <button class="btn btn-secondary" onclick="backToSetup()">← 返回修改/退出</button>
+        <button class="btn btn-secondary" onclick="backToSetup()">← 返回配置</button>
         <div id="readerArea" class="reader-area"></div>
     </div>
 </div>
@@ -294,26 +297,27 @@
         document.querySelectorAll('.word').forEach(el => el.classList.remove('active'));
         event.target.classList.add('active');
 
-        // 核心：获取整段上下文，让 AI 进行精准翻译
+        // 获取整段上下文，让 AI 进行精准语境翻译
         const sentence = event.target.parentNode.textContent;
 
         // 初始化弹窗
         document.getElementById('popupWord').textContent = word;
         const popupBody = document.getElementById('popupBody');
-        popupBody.innerHTML = '<span class="loading">Gemini 正在根据语境精准翻译...</span>';
+        popupBody.innerHTML = '<span class="loading">AI 正在根据语境精准翻译...</span>';
         document.getElementById('dictPopup').classList.add('show');
 
         // 读取配置
         const apiKey = document.getElementById('apiKey').value;
+        const targetModel = document.getElementById('aiModel').value;
         const targetLang = document.getElementById('targetLang').value;
 
         if (!apiKey) {
-            popupBody.innerHTML = '<span style="color:#e74c3c;">请先返回输入 Gemini API Key！</span>';
+            popupBody.innerHTML = '<span style="color:#e74c3c;">请先返回输入有效的 API Key！</span>';
             return;
         }
 
         try {
-            const result = await translateWithGemini(word, sentence, targetLang, apiKey);
+            const result = await translateWithAI(word, sentence, targetLang, targetModel, apiKey);
             popupBody.innerHTML = result.replace(/\n/g, '<br>');
         } catch (error) {
             popupBody.innerHTML = `<span style="color:#e74c3c;">翻译失败: ${error.message}</span>`;
@@ -325,8 +329,8 @@
         document.querySelectorAll('.word').forEach(el => el.classList.remove('active'));
     }
 
-    // 联动 Gemini API
-    async function translateWithGemini(word, context, lang, apiKey) {
+    // 联动 Google API (支持 Gemini 与 Gemma 4 切换)
+    async function translateWithAI(word, context, lang, model, apiKey) {
         const prompt = `你是一个内置在电子书里的高级AI多语言词典。
 请精准分析单词 "${word}" 在以下上下文句子中的精确含义。
 上下文: "${context}"
@@ -337,7 +341,8 @@
 词性. 在本语境中的意思
 (若存在词组搭配或语法变形，请在这里做简短提示)`;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        // 统一通过 Google Developer API 节点调用相应模型
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
             method: 'POST',
