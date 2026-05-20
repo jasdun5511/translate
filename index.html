@@ -3,363 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 智能点词阅读器</title>
+    <title>AI 智能点词阅读器 - Gemma 4 增强版</title>
     <style>
-        :root {
-            --primary-color: #2ecc71;
-            --bg-color: #f5f7fa;
-            --text-color: #2c3e50;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 650px;
-            width: 100%;
-            background: white;
-            padding: 24px;
-            box-sizing: border-box;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-        }
-
-        /* 视图控制 */
-        .view {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-        }
-        .view.active {
-            display: flex;
-        }
-
-        h2 {
-            margin-top: 0;
-            color: #34495e;
-            text-align: center;
-        }
-
-        /* 配置/输入界面样式 */
-        .form-group {
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        label {
-            font-weight: bold;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        input[type="password"], select, textarea {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 15px;
-            background: #fdfdfd;
-            transition: border 0.2s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-
-        textarea {
-            height: 220px;
-            resize: vertical;
-            line-height: 1.5;
-        }
-
-        .btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .btn:hover { opacity: 0.9; }
-        
-        .btn-secondary {
-            background-color: #95a5a6;
-            padding: 8px 12px;
-            font-size: 13px;
-            align-self: flex-start;
-            margin-bottom: 15px;
-        }
-
-        /* 阅读界面样式 */
-        .reader-area {
-            line-height: 1.8;
-            font-size: 19px;
-            letter-spacing: 0.5px;
-            white-space: pre-wrap;
-            color: #111;
-        }
-
-        /* 单词标签化 */
-        .word {
-            cursor: pointer;
-            border-radius: 3px;
-            transition: background-color 0.15s;
-            padding: 0 1px;
-            display: inline-block;
-        }
-
-        .word:hover {
-            background-color: rgba(46, 204, 113, 0.2);
-            color: var(--primary-color);
-        }
-
-        .word.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        /* 底部浮动词典弹窗 */
-        .dict-popup {
-            position: fixed;
-            bottom: -100%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 650px;
-            background: white;
-            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
-            border-top-left-radius: 16px;
-            border-top-right-radius: 16px;
-            transition: bottom 0.3s cubic-bezier(0.1, 0.8, 0.25, 1);
-            padding: 20px;
-            box-sizing: border-box;
-            z-index: 1000;
-        }
-
+        :root { --primary: #2ecc71; --bg: #f8f9fa; --card: #ffffff; --text: #2c3e50; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
+        .container { max-width: 650px; width: 100%; background: var(--card); min-height: 100vh; padding: 25px; box-sizing: border-box; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        .view { display: none; flex-direction: column; }
+        .view.active { display: flex; }
+        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+        label { font-weight: bold; font-size: 14px; color: #7f8c8d; }
+        input, select, textarea { padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
+        textarea { height: 200px; line-height: 1.6; }
+        .btn { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .reader-area { line-height: 1.9; font-size: 20px; white-space: pre-wrap; color: #1a1a1a; }
+        .word { cursor: pointer; border-radius: 4px; padding: 0 2px; display: inline-block; transition: 0.2s; }
+        .word:hover { background: rgba(46, 204, 113, 0.2); color: var(--primary); }
+        .word.active { background: var(--primary); color: white; }
+        .dict-popup { position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 650px; background: white; box-shadow: 0 -5px 30px rgba(0,0,0,0.15); border-radius: 20px 20px 0 0; transition: 0.4s cubic-bezier(0.1, 0.8, 0.2, 1); padding: 25px; z-index: 1000; box-sizing: border-box; }
         .dict-popup.show { bottom: 0; }
-
-        .popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-        }
-
-        .popup-word {
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: #bdc3c7;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .popup-body {
-            font-size: 16px;
-            line-height: 1.6;
-            min-height: 60px;
-        }
-
-        .loading {
-            color: #7f8c8d;
-            font-style: italic;
-        }
+        .popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .popup-word { font-size: 24px; font-weight: bold; color: var(--primary); }
+        .popup-body { font-size: 17px; line-height: 1.6; color: #34495e; }
+        .loading { font-style: italic; color: #95a5a6; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    
     <div id="setupView" class="view active">
-        <h2>AI 智能查词阅读器</h2>
-        
+        <h2 style="text-align:center;">AI 智能查词阅读器</h2>
         <div class="form-group">
-            <label for="apiKey">1. Gemini / Gemma API Key</label>
-            <input type="password" id="apiKey" placeholder="在此粘入你的 Google AI 密钥">
+            <label>1. API Key (Gemini/Gemma 通用)</label>
+            <input type="password" id="apiKey" placeholder="输入您的密钥...">
         </div>
-
         <div class="form-group">
-            <label for="aiModel">2. 选择 AI 模型类型</label>
+            <label>2. 核心 AI 模型 (重点选择)</label>
             <select id="aiModel">
-                <option value="gemma-4-31b-it">Gemma 4 (31B-IT 开源旗舰模型)</option>
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (极速推荐)</option>
+                <option value="gemma-4-31b-it">Gemma 4 (31B 旗舰开源模型 - 推荐)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (极速翻译)</option>
+                <option value="gemma-4-26b-a4b-it">Gemma 4 (26B MoE 专家模型)</option>
             </select>
         </div>
-
         <div class="form-group">
-            <label for="targetLang">3. 目标翻译语言</label>
+            <label>3. 目标语言</label>
             <select id="targetLang">
-                <option value="中文 (Chinese)">中文 (Chinese)</option>
-                <option value="葡萄牙语 (Portuguese)">Português (葡萄牙语)</option>
-                <option value="英语 (English)">English (英语)</option>
+                <option value="中文">中文 (Chinese)</option>
+                <option value="葡萄牙语">Português (葡萄牙语)</option>
+                <option value="英语">English (英语)</option>
             </select>
         </div>
-
         <div class="form-group">
-            <label>4. 导入文章（选择文件或直接粘贴）</label>
-            <input type="file" id="fileInput" accept=".txt" style="margin-bottom: 8px;">
-            <textarea id="textInput" placeholder="在此粘贴你想阅读的文章、歌词或剧本段落..."></textarea>
+            <label>4. 导入内容</label>
+            <input type="file" id="fileInput" accept=".txt">
+            <textarea id="textInput" placeholder="在此粘贴您的文章..."></textarea>
         </div>
-
-        <button class="btn" onclick="startReading()">开始沉浸阅读</button>
+        <button class="btn" onclick="startReading()">进入沉浸模式</button>
     </div>
-
     <div id="readerView" class="view">
-        <button class="btn btn-secondary" onclick="backToSetup()">← 返回配置</button>
+        <button onclick="location.reload()" style="background:none; border:none; color:#7f8c8d; cursor:pointer; margin-bottom:15px;">← 返回修改</button>
         <div id="readerArea" class="reader-area"></div>
     </div>
 </div>
 
 <div id="dictPopup" class="dict-popup">
     <div class="popup-header">
-        <span id="popupWord" class="popup-word">Word</span>
-        <button class="close-btn" onclick="closePopup()">×</button>
+        <span id="popupWord" class="popup-word"></span>
+        <button onclick="closePopup()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#ccc;">×</button>
     </div>
     <div id="popupBody" class="popup-body"></div>
 </div>
 
 <script>
-    // 监听本地文件导入
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+    // 文件导入
+    document.getElementById('fileInput').addEventListener('change', e => {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('textInput').value = e.target.result;
-        };
-        reader.readAsText(file);
+        reader.onload = ev => document.getElementById('textInput').value = ev.target.result;
+        reader.readAsText(e.target.files[0]);
     });
 
-    // 进入阅读模式
     function startReading() {
-        const rawText = document.getElementById('textInput').value;
-        if (!rawText.trim()) {
-            alert('请先粘贴文章或导入一个 .txt 文件！');
-            return;
-        }
-
-        // 解析文章：将单词转化为可点击的标签，保留空格和换行
-        const readerArea = document.getElementById('readerArea');
-        const tokens = rawText.split(/(\b[a-zA-Z0-9'-]+\b)/g);
-        readerArea.innerHTML = '';
-
-        tokens.forEach(token => {
-            if (/\b[a-zA-Z0-9'-]+\b/.test(token)) {
-                const span = document.createElement('span');
-                span.className = 'word';
-                span.textContent = token;
-                span.onclick = (e) => handleWordClick(e, token);
-                readerArea.appendChild(span);
-            } else {
-                readerArea.appendChild(document.createTextNode(token));
-            }
+        const text = document.getElementById('textInput').value;
+        if(!text.trim()) return alert("请先输入内容！");
+        const area = document.getElementById('readerArea');
+        area.innerHTML = '';
+        // 渲染单词
+        text.split(/(\b[a-zA-Z0-9'-]+\b)/g).forEach(t => {
+            if(/\b[a-zA-Z0-9'-]+\b/.test(t)) {
+                const s = document.createElement('span');
+                s.className = 'word'; s.textContent = t;
+                s.onclick = (e) => handleWord(e, t);
+                area.appendChild(s);
+            } else area.appendChild(document.createTextNode(t));
         });
-
-        // 切换视图
         document.getElementById('setupView').classList.remove('active');
         document.getElementById('readerView').classList.add('active');
-        window.scrollTo(0,0);
     }
 
-    // 返回配置视图
-    function backToSetup() {
-        closePopup();
-        document.getElementById('readerView').classList.remove('active');
-        document.getElementById('setupView').classList.add('active');
-    }
-
-    // 处理点击单词
-    async function handleWordClick(event, word) {
-        // 高亮当前词
-        document.querySelectorAll('.word').forEach(el => el.classList.remove('active'));
-        event.target.classList.add('active');
-
-        // 获取整段上下文，让 AI 进行精准语境翻译
-        const sentence = event.target.parentNode.textContent;
-
-        // 初始化弹窗
+    async function handleWord(e, word) {
+        document.querySelectorAll('.word').forEach(w => w.classList.remove('active'));
+        e.target.classList.add('active');
+        const context = e.target.parentNode.textContent;
+        const popup = document.getElementById('dictPopup');
         document.getElementById('popupWord').textContent = word;
-        const popupBody = document.getElementById('popupBody');
-        popupBody.innerHTML = '<span class="loading">AI 正在根据语境精准翻译...</span>';
-        document.getElementById('dictPopup').classList.add('show');
+        document.getElementById('popupBody').innerHTML = '<span class="loading">正在调用 AI 分析语境...</span>';
+        popup.classList.add('show');
 
-        // 读取配置
-        const apiKey = document.getElementById('apiKey').value;
-        const targetModel = document.getElementById('aiModel').value;
-        const targetLang = document.getElementById('targetLang').value;
-
-        if (!apiKey) {
-            popupBody.innerHTML = '<span style="color:#e74c3c;">请先返回输入有效的 API Key！</span>';
-            return;
-        }
+        const key = document.getElementById('apiKey').value;
+        const model = document.getElementById('aiModel').value;
+        const lang = document.getElementById('targetLang').value;
 
         try {
-            const result = await translateWithAI(word, sentence, targetLang, targetModel, apiKey);
-            popupBody.innerHTML = result.replace(/\n/g, '<br>');
-        } catch (error) {
-            popupBody.innerHTML = `<span style="color:#e74c3c;">翻译失败: ${error.message}</span>`;
-        }
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: `作为查词助手，翻译单词"${word}"。上下文:"${context}"。目标语言:${lang}。格式:[音标] 意思 (提示)` }] }] })
+            });
+            const data = await res.json();
+            document.getElementById('popupBody').innerHTML = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+        } catch (err) { document.getElementById('popupBody').textContent = "请求错误，请检查 Key 或模型权限。"; }
     }
 
-    function closePopup() {
-        document.getElementById('dictPopup').classList.remove('show');
-        document.querySelectorAll('.word').forEach(el => el.classList.remove('active'));
-    }
-
-    // 联动 Google API (支持 Gemini 与 Gemma 4 切换)
-    async function translateWithAI(word, context, lang, model, apiKey) {
-        const prompt = `你是一个内置在电子书里的高级AI多语言词典。
-请精准分析单词 "${word}" 在以下上下文句子中的精确含义。
-上下文: "${context}"
-目标翻译语言: ${lang}
-
-请严格按以下格式输出（不要返回任何 markdown 语法，直接返回文字，不要有多余的客套话）：
-[音标]
-词性. 在本语境中的意思
-(若存在词组搭配或语法变形，请在这里做简短提示)`;
-
-        // 统一通过 Google Developer API 节点调用相应模型
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
-
-        if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.error?.message || '请求失败');
-        }
-
-        const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
-    }
+    function closePopup() { document.getElementById('dictPopup').classList.remove('show'); }
 </script>
 </body>
 </html>
